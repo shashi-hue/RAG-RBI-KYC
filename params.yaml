@@ -26,3 +26,10 @@ qdrant:
 hydra:
   run:
     dir: .
+
+llm:
+  provider:    "groq"
+  model:       "llama-3.3-70b-versatile"
+  temperature: 0.0
+  max_tokens:  1024
+  api_key:     ${oc.env:GROQ_API_KEY}

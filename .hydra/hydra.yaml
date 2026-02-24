@@ -113,7 +113,7 @@ hydra:
     - hydra.mode=RUN
     task: []
   job:
-    name: test_retrieval
+    name: test_chain
     chdir: null
     override_dirname: ''
     id: ???

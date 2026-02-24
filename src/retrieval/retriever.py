@@ -230,6 +230,37 @@ class KYCRetriever:
         return round(1 / (1 + math.exp(-x * 0.1)), 4) 
     # Public: main retrieve 
 
+
+    def fetch_all_by_source(self, source: str) -> list[RetrievedChunk]:
+        """
+        Scroll ALL points for a given source — bypasses vector search
+        and reranker entirely. Safe only for small bounded sets (annex_iv = 18 rows).
+        """
+        points, _ = self.qdrant.scroll(
+            collection_name = self.collection,
+            scroll_filter   = Filter(must=[
+                FieldCondition(key="source", match=MatchValue(value=source))
+            ]),
+            limit        = 500,       # well above any source size
+            with_payload = True,
+            with_vectors = False,     # no vectors needed — not doing similarity
+        )
+
+        return [
+            RetrievedChunk(
+                rank     = i + 1,
+                score    = 1.0,       # all rows equally fetched, no ranking
+                source   = p.payload.get("source", ""),
+                chapter  = p.payload.get("chapter", ""),
+                status   = p.payload.get("status", ""),
+                text     = p.payload.get("text", ""),
+                citation = p.payload.get("citation", ""),
+                payload  = p.payload,
+            )
+            for i, p in enumerate(points)
+        ]
+
+
     def retrieve(
         self,
         query:          str,
@@ -237,6 +268,7 @@ class KYCRetriever:
         status_filter:  Optional[str]       = None,
         exclude_status: Optional[list[str]] = None,
         sources:        Optional[list[str]] = None,
+        skip_rerank: bool = False,
     ) -> list[RetrievedChunk]:
         """
         Full hybrid retrieval pipeline:
@@ -261,6 +293,21 @@ class KYCRetriever:
         if not raw_results:
             log.warning(f"No results found for query: '{query}'")
             return []
+        if skip_rerank:
+            # Return top_k_return results in RRF order directly
+            return [
+                RetrievedChunk(
+                    rank     = i + 1,
+                    score    = 1.0,
+                    source   = r.payload.get("source", ""),
+                    chapter  = r.payload.get("chapter", ""),
+                    status   = r.payload.get("status", ""),
+                    text     = r.payload.get("text", ""),
+                    citation = r.payload.get("citation", ""),
+                    payload  = r.payload,
+                )
+                for i, r in enumerate(raw_results[:self.top_k_return])
+            ]
 
         # Step 2: cross-encoder reranking
         ranked = self._rerank(query, raw_results)
