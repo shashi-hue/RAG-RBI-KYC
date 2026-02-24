@@ -1,0 +1,4 @@
+[core]
+    remote = my_internal_storage
+['remote "my_internal_storage"']
+    url = ../my_local_remote
