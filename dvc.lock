@@ -1,0 +1,84 @@
+schema: '2.0'
+stages:
+  ingest:
+    cmd: python -m src.ingestion.run_ingestion
+    deps:
+    - path: data/raw/KYC_Directions_2025.pdf
+      hash: md5
+      md5: 21481eea476924aed20db67f43c39988
+      size: 906894
+    - path: src/ingestion/annex_iv.py
+      hash: md5
+      md5: 3b616ae0f5c216c1a4028d9ddc2b64a8
+      size: 5247
+    - path: src/ingestion/appendix.py
+      hash: md5
+      md5: e849dbb565a0fe4a558307696099e1bd
+      size: 4550
+    - path: src/ingestion/models.py
+      hash: md5
+      md5: 67ebc207ea1bb9aaeb7f44066f434cb4
+      size: 1560
+    - path: src/ingestion/parser.py
+      hash: md5
+      md5: 2c21acbc3cded18bf56bf5d46c183705
+      size: 11278
+    - path: src/ingestion/run_ingestion.py
+      hash: md5
+      md5: 4d2eb000102a62babe826bd53aea8b52
+      size: 3161
+    params:
+      params.yaml:
+        ingestion:
+          pdf_path: data/raw/KYC_Directions_2025.pdf
+          chunks_out: data/processed/chunks.jsonl
+          annex_iv_out: data/processed/annex_iv.jsonl
+          repealed_out: data/processed/repealed_circulars.json
+          metrics_out: reports/ingestion_metrics.json
+          footer_lookback: 50
+    outs:
+    - path: data/processed/annex_iv.jsonl
+      hash: md5
+      md5: 59616a1911af273be26b3367965ddfb3
+      size: 10225
+    - path: data/processed/chunks.jsonl
+      hash: md5
+      md5: 5086d4f3ccbe2f531cf33e37c5d7c71a
+      size: 456244
+    - path: data/processed/repealed_circulars.json
+      hash: md5
+      md5: 0511164b32df331a91fe2fb9e7b3a883
+      size: 61547
+    - path: reports/ingestion_metrics.json
+      hash: md5
+      md5: d39d073b53b43526521687b7f2db77ec
+      size: 210
+  embed:
+    cmd: python -m src.embedding.embed
+    deps:
+    - path: data/processed/annex_iv.jsonl
+      hash: md5
+      md5: 59616a1911af273be26b3367965ddfb3
+      size: 10225
+    - path: data/processed/chunks.jsonl
+      hash: md5
+      md5: 5086d4f3ccbe2f531cf33e37c5d7c71a
+      size: 456244
+    - path: data/processed/repealed_circulars.json
+      hash: md5
+      md5: 0511164b32df331a91fe2fb9e7b3a883
+      size: 61547
+    - path: src/embedding/embed.py
+      hash: md5
+      md5: 2bd27a0116cfa690c1cbc245c3d49903
+      size: 8530
+    params:
+      params.yaml:
+        embedding.batch_size: 32
+        embedding.collection_name: kyc_master_direction
+        embedding.model: BAAI/bge-large-en-v1.5
+    outs:
+    - path: data/processed/embed_manifest.json
+      hash: md5
+      md5: 774b984c582b438720ca0a0595a67089
+      size: 312

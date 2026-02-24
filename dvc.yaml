@@ -1,0 +1,35 @@
+stages:
+  ingest:
+    cmd: python -m src.ingestion.run_ingestion
+    deps:
+      - src/ingestion/parser.py
+      - src/ingestion/annex_iv.py
+      - src/ingestion/appendix.py
+      - src/ingestion/models.py
+      - src/ingestion/run_ingestion.py
+      - data/raw/KYC_Directions_2025.pdf
+    params:
+      - ingestion   # reads from params.yaml
+    outs:
+      - data/processed/chunks.jsonl
+      - data/processed/annex_iv.jsonl
+      - data/processed/repealed_circulars.json
+    metrics:
+      - reports/ingestion_metrics.json:
+          cache: false  
+
+
+  embed:
+    cmd: python -m src.embedding.embed
+    deps:
+      - data/processed/chunks.jsonl
+      - data/processed/annex_iv.jsonl
+      - data/processed/repealed_circulars.json
+      - src/embedding/embed.py
+    params:
+      - params.yaml:
+          - embedding.model
+          - embedding.batch_size
+          - embedding.collection_name
+    outs:
+      - data/processed/embed_manifest.json  

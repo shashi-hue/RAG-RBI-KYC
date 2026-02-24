@@ -1,0 +1,10 @@
+pymupdf 
+rank-bm25 
+qdrant-client 
+mlflow 
+pyyaml 
+pytest
+pdfplumber
+
+
+-e .

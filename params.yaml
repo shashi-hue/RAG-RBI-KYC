@@ -1,0 +1,28 @@
+ingestion:
+  pdf_path:       data/raw/KYC_Directions_2025.pdf
+  chunks_out:     data/processed/chunks.jsonl
+  annex_iv_out:   data/processed/annex_iv.jsonl
+  repealed_out:   data/processed/repealed_circulars.json
+  metrics_out:    reports/ingestion_metrics.json
+  footer_lookback: 50   # lines to scan upward for footer boundary
+
+
+embedding:
+  model:           "BAAI/bge-large-en-v1.5"  
+  sparse_model:    "Qdrant/bm25"
+  batch_size:      32
+  collection_name: "kyc_master_direction"
+
+
+reranker:
+  model:          "cross-encoder/ms-marco-MiniLM-L-12-v2" #"BAAI/bge-reranker-large"   # local cross-encoder
+  top_k_retrieve: 20
+  top_k_return:    5   
+
+qdrant:
+  host: "localhost"
+  port: 6333
+
+hydra:
+  run:
+    dir: .
