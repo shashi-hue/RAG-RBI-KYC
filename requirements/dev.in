@@ -1,0 +1,18 @@
+-c prod.txt          # constrain to same versions as prod — no conflicts
+
+# Ingestion pipeline (DVC stages, not in API container)
+pymupdf
+pdfplumber
+dvc
+dvc-s3
+mlflow
+
+# Testing
+pytest
+pytest-anyio
+
+# Linting
+ruff
+
+# Dep management
+pip-tools

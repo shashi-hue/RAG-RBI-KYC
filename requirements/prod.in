@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pydantic
+qdrant-client
+sentence-transformers
+fastembed
+langchain
+langchain-groq
+langchain-core
+hydra-core
+omegaconf
+groq
+httpx
