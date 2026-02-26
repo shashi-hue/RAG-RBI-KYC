@@ -19,9 +19,16 @@ reranker:
   top_k_retrieve: 20
   top_k_return:    5   
 
+# qdrant:
+#   host: "localhost"
+#   port: 6333
+
+# qdrant:
+#   host: qdrant
+#   port: 6333
+
 qdrant:
-  host: "localhost"
-  port: 6333
+  url: ${oc.env:QDRANT_URL}
 
 hydra:
   run:

@@ -210,3 +210,7 @@ __marimo__/
 my_local_remote/
 
 qdrant_storage/
+
+requirements.txt
+
+.venv-linux/
