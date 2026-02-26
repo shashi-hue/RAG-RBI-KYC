@@ -12,7 +12,7 @@ import pdfplumber
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger(__name__)
 
-FAQ_PDF  = Path("data/raw/FAQ-s_KYC_Directions_2025.pdf")
+FAQ_PDF  = Path("data/raw/FAQ's_KYC_Directions_2025.pdf")
 OUT_PATH = Path("data/eval/faq_raw_qa.jsonl")
 
 # Q 1. / Q1. / Q. 1 — all variants in this PDF
