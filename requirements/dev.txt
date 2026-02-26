@@ -111,13 +111,7 @@ click-repl==0.3.0
 cloudpickle==3.1.2
     # via mlflow-skinny
 colorama==0.4.6
-    # via
-    #   -c requirements/prod.txt
-    #   build
-    #   click
-    #   dvc
-    #   pytest
-    #   tqdm
+    # via dvc
 configobj==5.0.9
     # via dvc
 contourpy==1.3.3
@@ -130,7 +124,7 @@ cryptography==46.0.5
     #   pdfminer-six
 cycler==0.12.1
     # via matplotlib
-databricks-sdk==0.92.0
+databricks-sdk==0.93.0
     # via
     #   mlflow-skinny
     #   mlflow-tracing
@@ -174,7 +168,7 @@ dvc-task==0.40.2
     # via dvc
 entrypoints==0.4
     # via gto
-fastapi==0.133.0
+fastapi==0.133.1
     # via
     #   -c requirements/prod.txt
     #   mlflow-skinny
@@ -238,6 +232,8 @@ greenlet==3.3.2
     # via sqlalchemy
 gto==1.9.0
     # via dvc
+gunicorn==25.1.0
+    # via mlflow
 h11==0.16.0
     # via
     #   -c requirements/prod.txt
@@ -358,6 +354,7 @@ packaging==26.0
     #   -c requirements/prod.txt
     #   build
     #   dvc
+    #   gunicorn
     #   hydra-core
     #   kombu
     #   matplotlib
@@ -480,11 +477,6 @@ python-dotenv==1.2.1
     #   pydantic-settings
 pytz==2025.2
     # via pandas
-pywin32==311
-    # via
-    #   -c requirements/prod.txt
-    #   docker
-    #   dvc-task
 pyyaml==6.0.3
     # via
     #   -c requirements/prod.txt
@@ -611,7 +603,6 @@ tzdata==2025.3
     # via
     #   kombu
     #   pandas
-    #   tzlocal
 tzlocal==5.3.1
     # via celery
 urllib3==2.6.3
@@ -634,8 +625,6 @@ voluptuous==0.16.0
     # via
     #   dvc
     #   dvc-studio-client
-waitress==3.0.2
-    # via mlflow
 wcwidth==0.6.0
     # via
     #   prettytable
