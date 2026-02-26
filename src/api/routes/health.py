@@ -22,7 +22,7 @@ def health():
 def readiness():
     """Checks Qdrant is reachable and collection has vectors."""
     cfg    = get_cfg()
-    qdrant = QdrantClient(host=cfg.qdrant.host, port=cfg.qdrant.port)
+    qdrant = QdrantClient(url=cfg.qdrant.url)
 
     try:
         info   = qdrant.get_collection(cfg.embedding.collection_name)

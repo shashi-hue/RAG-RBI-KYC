@@ -100,7 +100,7 @@ class KYCRetriever:
             max_length=512,   # ← truncate to speed up CPU inference
         )
 
-        self.qdrant         = QdrantClient(host=cfg.qdrant.host, port=cfg.qdrant.port)
+        self.qdrant         = QdrantClient(url=cfg.qdrant.url)
         self.collection     = cfg.embedding.collection_name
         self.top_k_retrieve = cfg.reranker.top_k_retrieve   # candidates before rerank
         self.top_k_return   = cfg.reranker.top_k_return     # final results after rerank
