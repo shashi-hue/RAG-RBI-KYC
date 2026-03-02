@@ -1,0 +1,15 @@
+{"id": "int_001", "type": "intent", "question": "What is KYC?", "expected_intent": "general"}
+{"id": "int_002", "type": "intent", "question": "Is KYC mandatory?", "expected_intent": "general"}
+{"id": "int_003", "type": "intent", "question": "What is a suspicious transaction?", "expected_intent": "general"}
+{"id": "int_004", "type": "intent", "question": "What is a small account?", "expected_intent": "general"}
+{"id": "int_005", "type": "intent", "question": "What documents are needed to open a bank account?", "expected_intent": "general"}
+{"id": "int_006", "type": "intent", "question": "How do I update my KYC if my address has changed?", "expected_intent": "general"}
+{"id": "int_007", "type": "intent", "question": "What documents does a Category III FPI need to submit?", "expected_intent": "fpidocs"}
+{"id": "int_008", "type": "intent", "question": "List KYC requirements for a foreign portfolio investor.", "expected_intent": "fpidocs"}
+{"id": "int_009", "type": "intent", "question": "What KYC documents are required for FPI entity-level KYC?", "expected_intent": "fpidocs"}
+{"id": "int_010", "type": "intent", "question": "What was the old provision for customer identification before it was deleted?", "expected_intent": "historical"}
+{"id": "int_011", "type": "intent", "question": "What are the deleted provisions related to wire transfers?", "expected_intent": "historical"}
+{"id": "int_012", "type": "intent", "question": "What did the former text of paragraph 38 say?", "expected_intent": "historical"}
+{"id": "int_013", "type": "intent", "question": "What are the rules about wire transfers and correspondent banking?", "expected_intent": "chapter"}
+{"id": "int_014", "type": "intent", "question": "What does Chapter VI say about enhanced due diligence?", "expected_intent": "chapter"}
+{"id": "int_015", "type": "intent", "question": "What are the record maintenance requirements under Chapter VII?", "expected_intent": "chapter"}
