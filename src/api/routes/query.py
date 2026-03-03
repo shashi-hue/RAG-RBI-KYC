@@ -36,31 +36,29 @@ async def query_endpoint(
     req:   QueryRequest,
     chain: KYCChain = Depends(get_chain),
 ):
-    """
-    Standard RAG query. Returns full answer + citations.
-    Routing (FPI / historical / chapter / general) is handled automatically.
-    """
     try:
-        response: KYCResponse = await chain.ainvoke(
-            req.query,
-            chapter         = req.chapter,
-            include_deleted = req.include_deleted,
-        ) if req.chapter else await chain.ainvoke(req.query, include_deleted=req.include_deleted)
+        # Call sync methods directly — proven pattern from /query/route
+        if req.chapter or req.include_deleted:
+            response: KYCResponse = chain.invoke(
+                req.query,
+                chapter         = req.chapter,
+                include_deleted = req.include_deleted,
+            )
+        else:
+            response: KYCResponse = chain.query(req.query)
 
-        # Fire-and-forget MLflow logging (non-blocking)
         intent, chapter_hint = chain.router.classify(req.query)
         log.info(
             "query_metrics",
             extra={
-                "intent":           intent.value,
+                "intent":            intent.value,
                 "citation_coverage": len(response.citations) / max(response.chunks_used, 1),
-                "has_deleted":      response.has_deleted_provisions,
-                "has_amended":      response.has_amended_provisions,
-                "elapsed_sec":      response.elapsed_sec,
-                "chapter"    :     {chapter_hint},
+                "has_deleted":       response.has_deleted_provisions,
+                "has_amended":       response.has_amended_provisions,
+                "elapsed_sec":       response.elapsed_sec,
+                "chapter":           chapter_hint,
             }
         )
-
         return QueryResponse(
             query                  = response.query,
             answer                 = response.answer,

@@ -1,5 +1,5 @@
 import time
-from typing import Optional
+from typing import Optional, Dict
 from pydantic import BaseModel, Field
 
 
@@ -25,7 +25,9 @@ class KYCResponse(BaseModel):
     timestamp:              str   = Field(
         default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%S")
     )
+    llm_usage: Optional[Dict[str, int]] = None
 
+    
     def to_terminal(self) -> str:
         """Clean formatted string for CLI / logging."""
         lines = ["", "━" * 60, self.answer, ""]

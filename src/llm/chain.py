@@ -134,7 +134,8 @@ class KYCChain:
     ) -> KYCResponse:
         """
         Full RAG pipeline: retrieve → format → LLM → parse citations.
-        Returns a structured KYCResponse.
+        Returns a structured KYCResponse and (when available) exact llm usage
+        reported by the provider (attached to resp.llm_usage).
         """
         t0     = time.time()
         chunks = self._get_chunks(query, chapter, sources, include_deleted)
@@ -149,11 +150,87 @@ class KYCChain:
             )
 
         context = format_context_numbered(chunks)
-        answer  = self._chain.invoke({"context": context, "query": query})
+
+        # Default: no usage recorded
+        usage = None
+        answer = None
+
+        # Try to call the raw SDK client for exact usage (best-effort).
+        # If anything fails, fall back to the existing LCEL chain invocation.
+        try:
+            # Try to get the raw underlying client (ChatGroq exposes `.client`)
+            raw_client = getattr(self.llm, "client", None)
+            model_name = getattr(self.llm, "model", None)
+            max_toks = getattr(self.llm, "max_tokens", None)
+            temperature = getattr(self.llm, "temperature", None)
+
+            # Render the same prompt as KYC_PROMPT: system + human
+            # Use the raw prompt strings if available in prompts.py
+            try:
+                # best-effort: KYC_PROMPT -> render text; some runnables return structured data
+                rendered_prompt = KYC_PROMPT.invoke({"context": context, "query": query})
+                if not isinstance(rendered_prompt, str):
+                    rendered_prompt = str(rendered_prompt)
+            except Exception:
+                # fallback to composing a minimal user prompt if rendering fails
+                rendered_prompt = f"Context:\n{context}\n\nQuestion: {query}"
+
+            # If we have a raw client, call it with system + user roles to match LCEL call
+            if raw_client is not None:
+                # try to get system/human prompt strings if available
+                try:
+                    from src.llm.prompts import SYSTEM_PROMPT, HUMAN_PROMPT
+                    system_msg = SYSTEM_PROMPT
+                    human_msg = HUMAN_PROMPT.format(context=context, query=query)
+                    messages = [
+                        {"role": "system", "content": system_msg},
+                        {"role": "user",   "content": human_msg},
+                    ]
+                except Exception:
+                    # fallback: single user message using rendered_prompt
+                    messages = [{"role": "user", "content": rendered_prompt}]
+
+                # Call provider through raw SDK (returns 'usage' in response)
+                raw_resp = raw_client.create(
+                    model = model_name,
+                    messages = messages,
+                    max_tokens = max_toks,
+                    temperature = temperature,
+                )
+
+                # Extract answer text (work with dict or object shapes)
+                try:
+                    answer = raw_resp["choices"][0]["message"]["content"]
+                except Exception:
+                    try:
+                        answer = raw_resp.choices[0].message.content
+                    except Exception:
+                        answer = None
+
+                # Extract usage if present
+                try:
+                    u = raw_resp.get("usage") if isinstance(raw_resp, dict) else getattr(raw_resp, "usage", None)
+                    if isinstance(u, dict):
+                        usage = {
+                            "prompt_tokens": int(u.get("prompt_tokens", 0)),
+                            "completion_tokens": int(u.get("completion_tokens", 0)),
+                            "total_tokens": int(u.get("total_tokens", 0)),
+                        }
+                except Exception:
+                    usage = None
+
+        except Exception:
+            # Any problem in the SDK branch -> we'll do the standard chain call below
+            usage = None
+            answer = None
+
+        # Fallback: if SDK path did not produce an answer, use original LCEL chain
+        if answer is None:
+            answer = self._chain.invoke({"context": context, "query": query})
 
         citations = build_citations(answer, chunks)
 
-        return KYCResponse(
+        resp = KYCResponse(
             query                  = query,
             answer                 = answer,
             citations              = citations,
@@ -162,6 +239,13 @@ class KYCChain:
             chunks_used            = len(chunks),
             elapsed_sec            = round(time.time() - t0, 2),
         )
+
+        # attach exact usage dict if we extracted one
+        if usage:
+            # e.g. {"prompt_tokens":..., "completion_tokens":..., "total_tokens":...}
+            setattr(resp, "llm_usage", usage)
+
+        return resp
 
 
     # Public: streaming invoke 
@@ -193,6 +277,7 @@ class KYCChain:
 
     # Public: async invoke (for FastAPI)
 
+
     async def ainvoke(
         self,
         query:           str,
@@ -200,32 +285,21 @@ class KYCChain:
         sources:         Optional[list[str]] = None,
         include_deleted: bool                = False,
     ) -> KYCResponse:
-        """Async version of invoke() — use inside FastAPI route handlers."""
-        t0     = time.time()
-        chunks = self._get_chunks(query, chapter, sources, include_deleted)
-
-        if not chunks:
-            return KYCResponse(
-                query       = query,
-                answer      = "No relevant provisions found in the KYC Master Direction.",
-                citations   = [],
-                elapsed_sec = round(time.time() - t0, 2),
+        """
+        Calls sync methods directly in the event loop thread.
+        run_in_executor causes PyTorch/Qdrant thread-context loss — avoid it.
+        Proven safe: /query/route does the same pattern and works correctly.
+        """
+        if chapter or include_deleted:
+            return self.invoke(
+                query,
+                chapter         = chapter,
+                sources         = sources,
+                include_deleted = include_deleted,
             )
+        return self.query(query)
 
-        context = format_context_numbered(chunks)
-        answer  = await self._chain.ainvoke({"context": context, "query": query})
 
-        citations = build_citations(answer, chunks)
-
-        return KYCResponse(
-            query                  = query,
-            answer                 = answer,
-            citations              = citations,
-            has_deleted_provisions = any(c.status == "deleted"  for c in citations),
-            has_amended_provisions = any(c.status in ("amended", "inserted") for c in citations),
-            chunks_used            = len(chunks),
-            elapsed_sec            = round(time.time() - t0, 2),
-        )
 
 
     # Convenience wrappers 
