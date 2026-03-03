@@ -43,7 +43,7 @@ stages:
       size: 10225
     - path: data/processed/chunks.jsonl
       hash: md5
-      md5: 501a3dd5ddf0284dcdb2fdf477cd7973
+      md5: 7b86ffea63c7112e8a467987d51c4947
       size: 456244
     - path: data/processed/repealed_circulars.json
       hash: md5
@@ -51,7 +51,7 @@ stages:
       size: 61547
     - path: reports/ingestion_metrics.json
       hash: md5
-      md5: 756c0a077d6033624584b25eb2dcc25f
+      md5: e573a6d72fd2835231faf8625e68e1fc
       size: 210
   embed:
     cmd: python -m src.embedding.embed
@@ -62,7 +62,7 @@ stages:
       size: 10225
     - path: data/processed/chunks.jsonl
       hash: md5
-      md5: 501a3dd5ddf0284dcdb2fdf477cd7973
+      md5: 7b86ffea63c7112e8a467987d51c4947
       size: 456244
     - path: data/processed/repealed_circulars.json
       hash: md5
@@ -80,5 +80,5 @@ stages:
     outs:
     - path: data/processed/embed_manifest.json
       hash: md5
-      md5: 05f88b76aafa738ab101ee7b9b88bce2
+      md5: 9d6bfeeae1f7934165ea280bb4460f68
       size: 312

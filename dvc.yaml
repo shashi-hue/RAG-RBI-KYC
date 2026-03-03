@@ -33,3 +33,27 @@ stages:
           - embedding.collection_name
     outs:
       - data/processed/embed_manifest.json  
+
+  # evaluate:
+  #   cmd: python -m evaluation.run_eval
+  #   deps:
+  #     - evaluation/run_eval.py
+  #     - evaluation/metrics.py
+  #     - evaluation/judge.py
+  #     - data/eval/eval_dataset.jsonl    # ← committed to git, NOT DVC output
+  #     - src/retrieval/retriever.py
+  #     - src/llm/chain.py
+  #     - src/llm/router.py
+  #   params:
+  #     - params.yaml:
+  #         - embedding.model
+  #         - reranker.model
+  #         - reranker.top_k_retrieve
+  #         - reranker.top_k_return
+  #         - llm.model
+  #         - llm.temperature
+  #   outs:
+  #     - data/eval/eval_results.jsonl
+  #   metrics:
+  #     - data/eval/eval_metrics.json:
+  #         cache: false
