@@ -7,11 +7,11 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_storage:/qdrant/storage
-    healthcheck:
-      test: ["CMD-SHELL", "echo > /dev/tcp/localhost/6333 && echo ok || exit 1"]
-      interval: 10s
-      retries: 5
-      start_period: 15s    
+    # healthcheck:
+    #   test: ["CMD-SHELL", "echo > /dev/tcp/localhost/6333 && echo ok || exit 1"]
+    #   interval: 10s
+    #   retries: 5
+    #   start_period: 15s    
 
 
   api:
@@ -24,11 +24,12 @@ services:
       - LANGCHAIN_TRACING_V2=true
       - LANGCHAIN_PROJECT=kyc-rag-rbi
       - QDRANT_URL=http://qdrant:6333
-    depends_on:
-      qdrant:
-        condition: service_healthy
+    # depends_on:
+    #   qdrant:
+    #     condition: service_healthy
     volumes:
       - ./data:/app/data
+      - ./src:/app/src
     restart: on-failure
 
 volumes:
