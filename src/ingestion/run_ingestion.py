@@ -9,6 +9,7 @@ from pathlib import Path
 from .parser    import parse_document, save_chunks
 from .annex_iv  import extract_annex_iv
 from .appendix  import parse_appendix
+from .definitions import split_definitions_chunk
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,6 +44,16 @@ def main():
         # Step 1 — Main document
         log.info("Step 1/3 — Parsing main document...")
         chunks = parse_document(PDF_PATH)
+        # ── Explode Para 3 definitions into per-term chunks ──────────────────────
+        expanded: list = []
+        for c in chunks:
+            if c.paragraph == "3":
+                expanded.extend(split_definitions_chunk(c))
+            else:
+                expanded.append(c)
+        chunks = expanded
+        log.info(f"After definition split: {len(chunks)} total chunks")
+
         save_chunks(chunks, CHUNKS_OUT)
 
         deleted  = sum(1 for c in chunks if c.status == "deleted")
