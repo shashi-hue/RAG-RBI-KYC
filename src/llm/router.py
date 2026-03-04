@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class QueryIntent(str, Enum):
-    FPI_DOCS    = "fpi_docs"     # exhaustive FPI document listing
+    FPI_DOCS    = "fpidocs"     # exhaustive FPI document listing
     CHAPTER     = "chapter"      # chapter-scoped query
     HISTORICAL  = "historical"   # audit / deleted provision queries
     GENERAL     = "general"      # everything else
