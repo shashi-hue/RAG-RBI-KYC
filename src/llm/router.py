@@ -31,14 +31,16 @@ _HISTORICAL_RE = re.compile(
 )
 
 _CHAPTER_MAP = {
-    r'\b(customer\s+acceptance|acceptance\s+policy)\b':    "III",
-    r'\b(risk\s+(management|categor|based))\b':            "IV",
-    r'\b(customer\s+identification|CIP)\b':                "V",
-    r'\b(CDD|customer\s+due\s+diligence|EDD|enhanced)\b':  "VI",
-    r'\b(record\s*(management|keeping|maintenance))\b':    "VII",
-    r'\b(FIU|financial\s+intelligence|STR|CTR|report)\b':  "VIII",
-    r'\b(wire\s+transfer|correspondent\s+bank)\b':         "X",
-    r'\b(preliminary|definition|means)\b':                  "I",
+    r'\b(V-CIP|video[\s\-]+based\s+customer\s+identification)\b': "VI",  # ← classify v-cip to VI
+    r'\b(customer\s+acceptance|acceptance\s+policy)\b': "III",
+    r'\b(risk\s+(management|categor|based))\b': "IV",
+    r'\bcustomer\s+identification\b': "V",    # ← REMOVE bare CIP from this
+    r'\bCIP\b(?![-\s]*based)': "V",          # ← CIP but NOT V-CIP or CIP-based
+    r'\b(CDD|customer\s+due\s+diligence|EDD|enhanced)\b': "VI",
+    r'\b(record\s*(management|keeping|maintenance))\b': "VII",
+    r'\b(FIU|financial\s+intelligence|STR|CTR|report)\b': "VIII",
+    r'\b(wire\s+transfer|correspondent\s+bank)\b': "X",
+    r'\b(preliminary|definition|means)\b': "I",
 }
 
 

@@ -12,6 +12,8 @@ RULES — follow without exception:
 2. Cite every factual statement with its reference number in square brackets — e.g. [1] or [1][3].
 3. If the context is insufficient, say: "The provided context does not contain enough \
    information to answer this question fully."
+4. Always include ALL conditions, exceptions, provisos, and Explanations present in the cited context — do not omit edge cases or 'provided that' clauses."
+
 
 CITATION FORMAT:
 - Place [N] immediately after the sentence it supports.
