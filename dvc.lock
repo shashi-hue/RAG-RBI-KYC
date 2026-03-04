@@ -21,12 +21,12 @@ stages:
       size: 1560
     - path: src/ingestion/parser.py
       hash: md5
-      md5: 2c21acbc3cded18bf56bf5d46c183705
-      size: 11278
+      md5: 2f4343bef3ad501aef1be9a4faea2c45
+      size: 12080
     - path: src/ingestion/run_ingestion.py
       hash: md5
-      md5: 4d2eb000102a62babe826bd53aea8b52
-      size: 3161
+      md5: 63a75678e577751c7bf2e0a7b2d0bd70
+      size: 3808
     params:
       params.yaml:
         ingestion:
@@ -43,16 +43,16 @@ stages:
       size: 10225
     - path: data/processed/chunks.jsonl
       hash: md5
-      md5: 7b86ffea63c7112e8a467987d51c4947
-      size: 456244
+      md5: 4f2fc212077eb411df5cb0db8e2e4d46
+      size: 461138
     - path: data/processed/repealed_circulars.json
       hash: md5
       md5: 0511164b32df331a91fe2fb9e7b3a883
       size: 61547
     - path: reports/ingestion_metrics.json
       hash: md5
-      md5: e573a6d72fd2835231faf8625e68e1fc
-      size: 210
+      md5: ee83a6f90825dd6d9e58c777072b9a37
+      size: 209
   embed:
     cmd: python -m src.embedding.embed
     deps:
@@ -62,8 +62,8 @@ stages:
       size: 10225
     - path: data/processed/chunks.jsonl
       hash: md5
-      md5: 7b86ffea63c7112e8a467987d51c4947
-      size: 456244
+      md5: 4f2fc212077eb411df5cb0db8e2e4d46
+      size: 461138
     - path: data/processed/repealed_circulars.json
       hash: md5
       md5: 0511164b32df331a91fe2fb9e7b3a883
@@ -80,5 +80,5 @@ stages:
     outs:
     - path: data/processed/embed_manifest.json
       hash: md5
-      md5: 9d6bfeeae1f7934165ea280bb4460f68
+      md5: 0627a2e743b95b87f111a53ff8ea6d0f
       size: 312

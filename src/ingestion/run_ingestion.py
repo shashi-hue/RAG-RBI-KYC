@@ -45,9 +45,11 @@ def main():
         log.info("Step 1/3 — Parsing main document...")
         chunks = parse_document(PDF_PATH)
         # ── Explode Para 3 definitions into per-term chunks ──────────────────────
-        expanded: list = []
+        expanded = []
         for c in chunks:
-            if c.paragraph == "3":
+            # After parser fix, only paragraph="3" exists. 
+            # The startswith("3") also catches any edge case.
+            if c.paragraph and c.paragraph == "3" and c.chapter == "I":
                 expanded.extend(split_definitions_chunk(c))
             else:
                 expanded.append(c)

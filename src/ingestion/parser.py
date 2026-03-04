@@ -336,10 +336,26 @@ def parse_document(pdf_path: str) -> list[KYCChunk]:
             # Paragraph
             para_m = PARA_RE.match(s)
             if para_m:
+                new_para = para_m.group(1)
+
+                # Guard: reject inline numbered sub-items (e.g. "1." "2." inside Para 3's
+                # Beneficial Owner explanation). A real paragraph number never goes backward.
+                try:
+                    new_num = int(re.match(r'\d+', new_para).group())
+                    cur_num = int(re.match(r'\d+', paragraph).group()) if (
+                        paragraph and re.match(r'\d+', paragraph)
+                    ) else 0
+                    if new_num < cur_num:
+                        buffer.append(s)   # treat as continuation, not a new paragraph
+                        continue
+                except (ValueError, AttributeError):
+                    pass  # non-numeric para (e.g. "5A") — let it through normally
+
                 flush()
-                paragraph = para_m.group(1)
+                paragraph = new_para
                 buffer.append(s)
                 continue
+
 
             # Continuation of current paragraph
             buffer.append(s)
