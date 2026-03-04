@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Optional
 import torch
-
+import re
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from fastembed import SparseTextEmbedding
 from qdrant_client import QdrantClient
@@ -18,6 +18,28 @@ log = logging.getLogger(__name__)
 
 
 # Return type
+
+_KYC_ABBREVS = {
+    r'\bREs\b': 'Regulated Entities (REs)',
+    r'\bRE\b':  'Regulated Entity (RE)',
+    r'\bCDD\b': 'Customer Due Diligence (CDD)',
+    r'\bCIP\b': 'Customer Identification Procedure (CIP)',
+    r'\bOVD\b': 'Officially Valid Document (OVD)',
+    r'\bCKYCR\b': 'Central KYC Records Registry (CKYCR)',
+    r'\bBO\b':  'Beneficial Owner (BO)',
+    r'\bSTR\b': 'Suspicious Transaction Report (STR)',
+    r'\bPML\b': 'Prevention of Money Laundering (PML)',
+    r'\bPwD\b': 'Persons with Disabilities (PwD)',
+    r'\bV-CIP\b': 'Video-based Customer Identification Process (V-CIP)',
+    r'\bNF2F\b': 'Non-face-to-face (NF2F)',
+    r'\bBC\b':  'Business Correspondent (BC)',
+}
+
+def _expand_query(query: str) -> str:
+    """Expand regulatory abbreviations before embedding."""
+    for pattern, expansion in _KYC_ABBREVS.items():
+        query = re.sub(pattern, expansion, query)
+    return query
 
 
 @dataclass
@@ -284,6 +306,7 @@ class KYCRetriever:
         Returns:
             List of RetrievedChunk, ranked by reranker score.
         """
+        query = _expand_query(query)
         qdrant_filter = self._build_filter(
             status_filter, chapter, sources, exclude_status
         )
@@ -334,6 +357,7 @@ class KYCRetriever:
 
     def retrieve_active(self, query: str, **kwargs) -> list[RetrievedChunk]:
         """Retrieve only active + amended + inserted — skip deleted/repealed."""
+        query = _expand_query(query)
         return self.retrieve(
             query,
             exclude_status=["deleted", "repealed"],
