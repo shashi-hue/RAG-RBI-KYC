@@ -49,6 +49,7 @@ REFUSAL_PATTERNS = [
     r"no (relevant |specific )?information",
     r"i (don'?t|do not) have",
     r"no relevant provisions",
+    r"provided context does not contain enough information",
 ]
 _REFUSAL_RE = re.compile("|".join(REFUSAL_PATTERNS), re.I)
 
