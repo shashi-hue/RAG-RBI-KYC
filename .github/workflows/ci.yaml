@@ -26,7 +26,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements/dev.txt
 
-      - name: Run unit + integration tests
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
+
+      - name: Run tests
         run: pytest tests/test_ingestion.py -v -k "not Integration and not Processed"
 
       - name: Lint
