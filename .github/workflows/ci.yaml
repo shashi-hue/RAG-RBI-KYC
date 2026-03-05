@@ -55,11 +55,11 @@ jobs:
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
         run: |
-          IMAGE=$ECR_REGISTRY/kyc-rag:${{ github.sha }}
+          IMAGE=$ECR_REGISTRY/rag-kyc:${{ github.sha }}
           docker build -t $IMAGE .
-          docker tag  $IMAGE $ECR_REGISTRY/kyc-rag:latest
+          docker tag  $IMAGE $ECR_REGISTRY/rag-kyc:latest
           docker push $IMAGE
-          docker push $ECR_REGISTRY/kyc-rag:latest
+          docker push $ECR_REGISTRY/rag-kyc:latest
 
   deploy-ec2:
     runs-on: ubuntu-latest
@@ -88,18 +88,18 @@ jobs:
               docker login --username AWS --password-stdin $ECR_REGISTRY
 
             # Pull latest image
-            docker pull $ECR_REGISTRY/kyc-rag:latest
+            docker pull $ECR_REGISTRY/rag-kyc:latest
 
             # Stop & remove old container if exists
-            docker stop kyc-rag || true
-            docker rm   kyc-rag || true
+            docker stop rag-kyc || true
+            docker rm   rag-kyc || true
 
             # Run new container
-            docker run -d --name kyc-rag -p 8000:8000 \
+            docker run -d --name rag-kyc -p 8000:8000 \
               -e GROQ_API_KEY='${{ secrets.GROQ_API_KEY }}' \
               -e QDRANT_URL='${{ secrets.QDRANT_URL }}' \
               -e QDRANT_API_KEY='${{ secrets.QDRANT_API_KEY }}' \
-              $ECR_REGISTRY/kyc-rag:latest
+              $ECR_REGISTRY/rag-kyc:latest
 
 
   # Deploy to HF Spaces 
@@ -119,5 +119,5 @@ jobs:
           git config user.email "ci@github.com"
           git config user.name "GitHub CI"
           git remote add space \
-            https://user:$HF_TOKEN@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/kyc-rag
+            https://user:$HF_TOKEN@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/rag-kyc
           git push space main --force
