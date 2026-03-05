@@ -107,17 +107,42 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main'
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Prepare HF deploy folder
+        run: |
+          mkdir hf_deploy
+
+          cp Dockerfile hf_deploy/
+          cp params.yaml hf_deploy/
+          cp README.md hf_deploy/
+
+          mkdir -p hf_deploy/src
+          mkdir -p hf_deploy/requirements
+          mkdir -p hf_deploy/scripts
+
+          cp -r src/* hf_deploy/src/
+          cp requirements/prod.txt hf_deploy/requirements/
+          cp scripts/warmup_models.py hf_deploy/scripts/
+
       - name: Push to Hugging Face Spaces
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          cd hf_deploy
+
+          git init
+          git branch -M main
           git config user.email "ci@github.com"
           git config user.name "GitHub CI"
+
           git remote add space \
             https://user:$HF_TOKEN@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/rag-kyc
+
+          git add .
+          git commit -m "deploy to HF Space"
           git push space main --force
