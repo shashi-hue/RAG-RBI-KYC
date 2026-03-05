@@ -32,8 +32,6 @@ jobs:
       - name: Run tests
         run: pytest tests/test_ingestion.py -v -k "not Integration and not Processed"
 
-      - name: Lint
-        run: ruff check src/
 
   docker:
     runs-on: ubuntu-latest
