@@ -11,7 +11,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import (
     Distance, VectorParams, SparseVectorParams,
     PointStruct, SparseVector,
-    HnswConfigDiff,
+    HnswConfigDiff,PayloadSchemaType,
 )
 
 log = logging.getLogger(__name__)
@@ -78,23 +78,41 @@ def ensure_collection(qdrant: QdrantClient, name: str):
     existing = {c.name for c in qdrant.get_collections().collections}
     if name in existing:
         log.info(f"Collection '{name}' already exists — upserting into it")
-        return
+        # still create indexes in case they're missing on existing collection
+    else:
+        qdrant.create_collection(
+            collection_name       = name,
+            vectors_config        = {
+                "dense": VectorParams(
+                    size        = DENSE_DIM,
+                    distance    = Distance.COSINE,
+                    hnsw_config = HnswConfigDiff(m=16, ef_construct=200),
+                ),
+            },
+            sparse_vectors_config = {
+                "sparse": SparseVectorParams(),
+            },
+        )
+        log.info(f"Created hybrid collection '{name}' (dense={DENSE_DIM}d + BM25 sparse)")
 
-    qdrant.create_collection(
-        collection_name      = name,
-        vectors_config       = {
-            "dense": VectorParams(
-                size        = DENSE_DIM,
-                distance    = Distance.COSINE,
-                hnsw_config = HnswConfigDiff(m=16, ef_construct=200),
-            ),
-        },
-        sparse_vectors_config = {
-            "sparse": SparseVectorParams(),   # BM25 index, no size needed
-        },
-    )
-    log.info(f"Created hybrid collection '{name}'  (dense={DENSE_DIM}d + BM25 sparse)")
-
+    # Always ensure indexes — safe to run on existing collection too
+    payload_indexes = [
+        ("chapter",   PayloadSchemaType.KEYWORD),
+        ("status",    PayloadSchemaType.KEYWORD),
+        ("source",    PayloadSchemaType.KEYWORD),
+        ("paragraph", PayloadSchemaType.KEYWORD),
+    ]
+    for field, schema in payload_indexes:
+        try:
+            qdrant.create_payload_index(
+                collection_name=name,      # ← fixed: was 'collection'
+                field_name=field,
+                field_schema=schema,
+            )
+            log.info(f"Payload index ensured: {field}")
+        except Exception:
+            pass  # already exists — safe to ignore
+ 
 
 # Shared upsert helper
 
