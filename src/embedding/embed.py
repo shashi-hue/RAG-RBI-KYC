@@ -248,7 +248,7 @@ def main(cfg: DictConfig):
     log.info("Loading sparse model: {Qdrant/bm25}")
     sparse_model = SparseTextEmbedding(model_name="Qdrant/bm25")
 
-    qdrant = QdrantClient(url=cfg.qdrant.url)
+    qdrant = QdrantClient(url=cfg.qdrant.url,api_key=cfg.qdrant.api_key,timeout=30,)
     collection = cfg.embedding.collection_name
     ensure_collection(qdrant, collection)
 
