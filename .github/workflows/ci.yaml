@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/*.in') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements/dev.txt
+
+      - name: Run unit + integration tests
+        run: pytest tests/test_ingestion.py -v -k "not Integration and not Processed"
+
+      - name: Lint
+        run: ruff check src/
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ap-south-1
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        run: |
+          IMAGE=$ECR_REGISTRY/kyc-rag:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker tag  $IMAGE $ECR_REGISTRY/kyc-rag:latest
+          docker push $IMAGE
+          docker push $ECR_REGISTRY/kyc-rag:latest
+
+  deploy-ec2:
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ap-south-1
+
+      - name: Deploy via SSH to EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          port:     22
+          script: |
+            ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}
+
+            # Login to ECR from EC2
+            aws ecr get-login-password --region ap-south-1 | \
+              docker login --username AWS --password-stdin $ECR_REGISTRY
+
+            # Pull latest image
+            docker pull $ECR_REGISTRY/kyc-rag:latest
+
+            # Stop & remove old container if exists
+            docker stop kyc-rag || true
+            docker rm   kyc-rag || true
+
+            # Run new container
+            docker run -d --name kyc-rag -p 8000:8000 \
+              -e GROQ_API_KEY='${{ secrets.GROQ_API_KEY }}' \
+              -e QDRANT_URL='${{ secrets.QDRANT_URL }}' \
+              -e QDRANT_API_KEY='${{ secrets.QDRANT_API_KEY }}' \
+              $ECR_REGISTRY/kyc-rag:latest
+
+
+  # Deploy to HF Spaces 
+  deploy-hf:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config user.email "ci@github.com"
+          git config user.name "GitHub CI"
+          git remote add space \
+            https://user:$HF_TOKEN@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/kyc-rag
+          git push space main --force
