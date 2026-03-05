@@ -5,6 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api.middleware import RequestLoggingMiddleware
 from src.api.routes import query, health
 from src.api.dependencies import get_chain
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +38,12 @@ def create_app() -> FastAPI:
         allow_methods  = ["GET", "POST"],
         allow_headers  = ["*"],
     )
+
+    TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+    @app.get("/")
+    async def frontend():
+        return FileResponse(TEMPLATES_DIR / "frontend.html")
 
     # Routers
     app.include_router(health.router)

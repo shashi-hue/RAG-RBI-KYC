@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from src.llm.chain import KYCChain
 from src.llm.response import KYCResponse
 from src.api.dependencies import get_chain
+from src.llm.router import QueryIntent
 
 log    = logging.getLogger(__name__)
 router = APIRouter(tags=["query"])
@@ -134,10 +135,16 @@ async def query_stream(
     """
     async def token_generator() -> AsyncIterator[str]:
         try:
-            for token in chain.stream(
-                req.query,
-                include_deleted=req.include_deleted,
-            ):
+            # ← add router dispatch before streaming
+            intent, chapter_hint = chain.router.classify(req.query)
+            
+            # Pick the right chunk source based on intent
+            include_deleted = req.include_deleted or (intent == QueryIntent.HISTORICAL)
+            sources = ["annex_iv", "chunks"] if intent == QueryIntent.FPI_DOCS else None
+            chapter = chapter_hint if intent == QueryIntent.CHAPTER else req.chapter
+
+            for token in chain.stream(req.query, chapter=chapter, 
+                                    sources=sources, include_deleted=include_deleted):
                 yield f"data: {token}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
