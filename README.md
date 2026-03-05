@@ -19,7 +19,7 @@ pinned: false
 </p>
 
 <p align="center">
-  <a href="https://huggingface.co/spaces/shashi-hue/RAG-RBI-KYC">🟢 Live Demo (HuggingFace Spaces)</a> &nbsp;|&nbsp;
+  <a href="https://huggingface.co/spaces/shashi-hue/rag-kyc">🟢 Live Demo (HuggingFace Spaces)</a> &nbsp;|&nbsp;
   <a href="https://www.rbi.org.in/CommonPerson/english/scripts/notification.aspx?id=2607">📄 Source Document</a>
 </p>
 
